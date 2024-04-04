@@ -40,7 +40,7 @@ public final class APNSClient<Decoder: APNSJSONDecoder, Encoder: APNSJSONEncoder
     public let requestEncoder: Encoder
 
     /// The authentication token manager.
-    private let authenticationTokenManager: APNSAuthenticationTokenManager<ContinuousClock>?
+    public let authenticationTokenManager: APNSAuthenticationTokenManager<ContinuousClock>?
     
     /// The ByteBufferAllocator
     @usableFromInline
