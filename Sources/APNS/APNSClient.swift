@@ -37,9 +37,8 @@ public final class APNSClient<Decoder: APNSJSONDecoder, Encoder: APNSJSONEncoder
     private let responseDecoder: Decoder
     
     /// The encoder for the requests to APNs.
-    @usableFromInline
-    /* private */ internal let requestEncoder: Encoder
-    
+    public let requestEncoder: Encoder
+
     /// The authentication token manager.
     private let authenticationTokenManager: APNSAuthenticationTokenManager<ContinuousClock>?
     
@@ -48,7 +47,7 @@ public final class APNSClient<Decoder: APNSJSONDecoder, Encoder: APNSJSONEncoder
     /* private */ internal let byteBufferAllocator: ByteBufferAllocator
     
     /// Default ``HTTPHeaders`` which will be adapted for each request. This saves some allocations.
-    private let defaultRequestHeaders: HTTPHeaders = {
+    public let defaultRequestHeaders: HTTPHeaders = {
         var headers = HTTPHeaders()
         headers.reserveCapacity(10)
         headers.add(name: "content-type", value: "application/json")
@@ -177,35 +176,39 @@ extension APNSClient {
             headers.add(name: "authorization", value: token)
         }
 
-        // Device token
-        let requestURL = "\(self.configuration.environment.absoluteURL)/\(request.deviceToken)"
         var byteBuffer = self.byteBufferAllocator.buffer(capacity: 0)
 
         try self.requestEncoder.encode(request.message, into: &byteBuffer)
         
-        var httpClientRequest = HTTPClientRequest(url: requestURL)
-        httpClientRequest.method = .POST
-        httpClientRequest.headers = headers
-        httpClientRequest.body = .bytes(byteBuffer)
-
-        let response = try await self.httpClient.execute(httpClientRequest, deadline: .distantFuture)
-
-        let apnsID = response.headers.first(name: "apns-id").flatMap { UUID(uuidString: $0) }
-
-        if response.status == .ok {
-            return APNSResponse(apnsID: apnsID)
-        }
-
-        let body = try await response.body.collect(upTo: 1024)
-        let errorResponse = try responseDecoder.decode(APNSErrorResponse.self, from: body)
-
-        let error = APNSError(
-            responseStatus: Int(response.status.code),
-            apnsID: apnsID,
-            apnsResponse: errorResponse,
-            timestamp: errorResponse.timestampInSeconds.flatMap { Date(timeIntervalSince1970: $0) }
-        )
-
-        throw error
+			return try await send(byteBuffer: byteBuffer, headers: headers, deviceToken: request.deviceToken)
     }
+
+		public func send(byteBuffer: ByteBuffer, headers: HTTPHeaders, deviceToken: String) async throws -> APNSCore.APNSResponse {
+			// Device token
+			let requestURL = "\(self.configuration.environment.absoluteURL)/\(deviceToken)"
+			var httpClientRequest = HTTPClientRequest(url: requestURL)
+			httpClientRequest.method = .POST
+			httpClientRequest.headers = headers
+			httpClientRequest.body = .bytes(byteBuffer)
+
+			let response = try await self.httpClient.execute(httpClientRequest, deadline: .distantFuture)
+
+			let apnsID = response.headers.first(name: "apns-id").flatMap { UUID(uuidString: $0) }
+
+			if response.status == .ok {
+					return APNSResponse(apnsID: apnsID)
+			}
+
+			let body = try await response.body.collect(upTo: 1024)
+			let errorResponse = try responseDecoder.decode(APNSErrorResponse.self, from: body)
+
+			let error = APNSError(
+					responseStatus: Int(response.status.code),
+					apnsID: apnsID,
+					apnsResponse: errorResponse,
+					timestamp: errorResponse.timestampInSeconds.flatMap { Date(timeIntervalSince1970: $0) }
+			)
+
+			throw error
+		}
 }
