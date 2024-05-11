@@ -35,6 +35,16 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
             self.aps.timestamp = newValue
         }
     }
+    
+    public var alert: APNSAlertNotificationContent {
+        get {
+            return self.aps.alert
+        }
+
+        set {
+            self.aps.alert = newValue
+        }
+    }
 
     /// Event type e.g. update
     public var event: APNSLiveActivityNotificationEvent {
@@ -111,7 +121,8 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
         event: APNSLiveActivityNotificationEvent,
         timestamp: Int,
         dismissalDate: APNSLiveActivityDismissalDate = .none,
-        apnsID: UUID? = nil
+        apnsID: UUID? = nil,
+        alert: APNSAlertNotificationContent
     ) {
         self.init(
             expiration: expiration,
@@ -120,7 +131,8 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
             contentState: contentState,
             event: event,
             timestamp: timestamp,
-            dismissalDate: dismissalDate
+            dismissalDate: dismissalDate,
+            alert: alert
         )
     }
 
@@ -147,13 +159,15 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
         contentState: ContentState,
         event: APNSLiveActivityNotificationEvent,
         timestamp: Int,
-        dismissalDate: APNSLiveActivityDismissalDate = .none
+        dismissalDate: APNSLiveActivityDismissalDate = .none,
+        alert: APNSAlertNotificationContent
     ) {
         self.aps = APNSLiveActivityNotificationAPSStorage(
             timestamp: timestamp,
             event: event.rawValue,
             contentState: contentState,
-            dismissalDate: dismissalDate.dismissal
+            dismissalDate: dismissalDate.dismissal,
+            alert: alert
         )
         self.apnsID = apnsID
         self.expiration = expiration
