@@ -18,26 +18,22 @@ struct APNSLiveActivityNotificationAPSStorage<ContentState: Encodable>: Encodabl
         case event = "event"
         case contentState = "content-state"
         case dismissalDate = "dismissal-date"
-        case alert = "alert"
     }
 
     var timestamp: Int
     var event: String
     var contentState: ContentState
     var dismissalDate: Int?
-    var alert: APNSAlertNotificationContent
 
     init(
         timestamp: Int,
         event: String,
         contentState: ContentState,
-        dismissalDate: Int?,
-        alert: APNSAlertNotificationContent
+        dismissalDate: Int?
     ) {
         self.timestamp = timestamp
         self.contentState = contentState
         self.dismissalDate = dismissalDate
         self.event = event
-        self.alert = alert
     }
 }
