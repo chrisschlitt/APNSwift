@@ -36,7 +36,7 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
         }
     }
     
-    public var alert: APNSAlertNotificationContent {
+    public var alert: APNSAlertNotificationContent? {
         get {
             return self.aps.alert
         }
@@ -122,7 +122,7 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
         timestamp: Int,
         dismissalDate: APNSLiveActivityDismissalDate = .none,
         apnsID: UUID? = nil,
-        alert: APNSAlertNotificationContent
+        alert: APNSAlertNotificationContent? = nil
     ) {
         self.init(
             expiration: expiration,
@@ -160,7 +160,7 @@ public struct APNSLiveActivityNotification<ContentState: Encodable>: APNSMessage
         event: APNSLiveActivityNotificationEvent,
         timestamp: Int,
         dismissalDate: APNSLiveActivityDismissalDate = .none,
-        alert: APNSAlertNotificationContent
+        alert: APNSAlertNotificationContent? = nil
     ) {
         self.aps = APNSLiveActivityNotificationAPSStorage(
             timestamp: timestamp,
